@@ -1,5 +1,5 @@
 # The module contextcorrect
-Software to predict the correct word for a word wrongly pronounced by a child and accordingly transcribed. It is specifically targeted at dataseta consisting of files in the CHAT format (.cha extension). 
+This modue contains software to predict the correct word for a word wrongly pronounced by a child and accordingly transcribed. It is specifically targeted at datasets consisting of files in the CHAT format (.cha extension). 
 See https://childes.talkbank.org/, esp. https://talkbank.org/manuals/CHAT.pdf.  
 
 Warning: this software was never intended for use by others so has no features to facilitate use by others.
@@ -23,9 +23,9 @@ pip install sastadev
 
 ## What it does
 By running the program it will find occurrences of replacements (CHAT code [: ]),
-single word explanations (CHAT code [=  ]) and non-completions of words (CHAT code: parentheses), make a prediction (or no prediction) using BERTje and or the context for the word that was replaced, explained or incomplete, and check whether the predictions made are correct.
+single word explanations (CHAT code [=  ]) and non-completions of words (CHAT code: parentheses), make a prediction (or no prediction) using BERTje and/or the context for the word that was replaced, explained or incomplete, and check whether the predictions made are correct.
 
-The predictions are made only for words with a certain mimimal length, which is determined by a parameter. See the section on parameters.
+The predictions are made only for words with a certain minimal length, which is determined by a parameter. See the section on parameters.
 
 The predictions are made for a word (the target word) in a specific utterance, which we call the target utterance. This target utterance has been pronounced by the target speaker. The predictions are made on the basis of a number of factors.
 
@@ -35,7 +35,9 @@ Multiple words are predicted by BERTje.  The number of words predicted is determ
 
 Words can also be predicted purely on the basis of the context. Each word that occurs in the context is a candidate.
 
-The predicted words are evaluated in terms of their resemblance to the target word. The comparison is done using relative (or normalized) edit distance (*red*).  If the  relative edit distance is too large, the predicted word is discarded. If all predicted words are discarded, the software makes *no* prediction. The allowed deviance is determined by a parameter (see the section on parameters)
+A third method is to combine BERTje and the context method: if BERTje makes a prediction, it is taken; else it takes the prediction of the context, if there is one; otherwise there is no prediction.
+
+The predicted words are evaluated in terms of their resemblance to the target word. The comparison is done using relative (or normalized) edit distance (*red*).  If the  relative edit distance is too large, the predicted word is discarded. If all predicted words are discarded, the software makes *no* prediction. The allowed deviance is determined by a parameter (see the section on parameters). If two or more predictions have the same relative edirt distance to the target word, we speak oif *multiple predictions*. In this case the word with the highest BERTje score (if there is one) is selected, and if the prediction comes from  the context an arbitarry one is selected.
 
 ## How to run it
 One can run the software on a dataset in a folder as follows:
@@ -44,7 +46,46 @@ python contextcorrect.py -c <path-to-folder>
 
 ## The output generated
 
-@@to be added@@
+The program generates output in multiple files, one for the overall results and several files for different frequency lists.
+
+### Overall Results
+The overall results are in a file called *resultsxlslx.xlsx*. 
+
+This Excel workbook contains one Worksheet, and that is basically a single table.
+Each row in the table gives the results for a file.
+
+Each row has the following fields:
+* 5 fields for each method (so 15 in total). Each column header is of the form f'{method}{basicheader}' where *method* is one of *BERTje*, *Context* or *BelseC*, and *basicheader* is one of
+  * *correct*: number of correct predictions
+  * *wrong*: number of wrong predictions	
+  * *NO*: number of no predictions	
+  * *mult*: number of multiple predictions
+  * *correctinprediction*: number of cases in which the correct prediction is in the predictions made but was not selected
+* childage: age of the child in CHILDES notation
+* filename
+
+### Frequency lists
+
+The program also generates frequency lists for correctly predicted words, for multiply predicted words and for wrongly predicted words. It does this for all 3 methods (bertje, context, b+c = bertje+context). This leads to 9 files: 
+
+* correctly predicted words_b+c_frq.txt
+* correctly predicted words_bertje_frq.txt
+* correctly predicted words_context_frq.txt
+* multiplypredictedwords_b+c_frq.txt
+* multiplypredictedwords_bertje_frq.txt
+* multiplypredictedwords_context_frq.txt
+* wrongly predicted words_b+c_frq.txt
+* wrongly predicted words_bertje_frq.txt
+* wrongly predicted words_context_frq.txt
+
+These are all tsv files with 5 columns:
+* target word (str)
+* predicted word (str)
+* reference word (str)
+* score: BERTje score if available, -1 otherwise (float)
+* frequency (int)
+
+
 ## Help
 This is the output of:
 
@@ -75,7 +116,7 @@ Computers are slow, but we want them to do  lot for us. BERTje in particular is 
 
 The module *bertje* sets up a dictionary *bertjememory*. It does so by reading the file *bertjememory.json* in the folder *data/memory*. If this file does not exist, *bertjememory* will initially be an empty dictionary.
 
-*bertjememory* is a Python dictionary with strinsg as keys and a list of BERTje results as values. The list has maximally *topk* (see parameters) elements. Each BERTje result is  a dictionary with 4 items:
+*bertjememory* is a Python dictionary with strings as keys and a list of BERTje results as values. The list has maximally *topk* (see parameters) elements. Each BERTje result is  a dictionary with 4 items:
 
 * key = 'score': value represents the score BERTje assigns to this result (type: float). The list of results is sorted by this score from highest to lowest
 * key ='token': value is the BERTJe internal token identifier (type: int) 
@@ -89,7 +130,7 @@ The memory wil give wrong results if the *topk* parameter is adapted (especially
 
 If one changes the context, the memory will give no results because the results have not been computed for the input string before but *bertjememory* is still valid and will be extended with new results.
 
-We have run *contectcorrect* on all Dutch CHILDES data, and the *bertjememory.json* file contains results for this, but of course only for target words that are replacements, explanations or non-completions of words.
+We have run *contextcorrect* on all Dutch CHILDES data, and the *bertjememory.json* file contains results for this, but of course only for target words that are replacements, explanations or non-completions of words.
 
 If one uses *getbertjeresults* to obtain results from Bertje, one does not have to worry about *bertjememory*. However, if you want to define new functions to obtain results, the following functions are relevant:
 
@@ -121,9 +162,9 @@ If you have a target utterance with the target word replaced by a mask and a con
 
 Next you may want to obtain the predictions by BERTje. This can be done by the function *getbertjeresults* in the module *bertje*. This will yield a list of BERTJe results, where each BERTje result is a dictionary with 4 elements: *score*, *token*, *token_str*, *sequence*. See the section on BERTje memory.
 
-Two other functions  from the moduke *bertje* may be useful: 
+Two other functions  from the module *bertje* may be useful: 
 
-* *getbertjemaskwords*: yields a list of predicted words (from most to least plausibe according to BERTje)
+* *getbertjemaskwords*: yields a list of predicted words (from most to least plausible according to BERTje)
 * *getbertjemaskwordswithscores*: yields a list of tuples (predictedword: str, score: float) sorted by score highest to lowest
 
 You may want to compare the results obtained with the target word. For this you can use the function *getclosedmatches* from the module *contextcorrect*. It will return those words for which the relative edit distance is smaller than the *redthreshold* parameter.
