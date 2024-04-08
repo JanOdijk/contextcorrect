@@ -412,7 +412,14 @@ def getcontext2(utterances: List[str], uttno: int, contextsize: int, targetspeak
     function to obtain the context of the utterance at index *uttno* in the list of *utterances*,
 
     The cond parameter can be used for a function that imposes restrictions on a context utterance, e.g.,
-    that the context utterance must be an utterance for speakers other than the target speaker.
+    that the context utterance must be an utterance for speakers other than the target speaker. That conditon can be
+    formulated as follows:
+
+    ```
+    cond = lambda utt, tsp: getspeaker(utt) != tsp
+    ```
+    wheree *tsp* is the targetspeaker
+
     '''
     lutterances = len(utterances)
     newcontext = []
@@ -439,6 +446,11 @@ def getcontext2(utterances: List[str], uttno: int, contextsize: int, targetspeak
 
 
 def excludetargetspeaker(utt, targetspeaker) -> bool:
+    """
+    :param utt:
+    :param targetspeaker:
+    :return: True if the speaker of *utt* is not equal to *targetspeaker*, False otherwie
+    """
     candspeaker = getspeaker(utt)
     return candspeaker != targetspeaker
 

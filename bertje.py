@@ -19,7 +19,7 @@ bertjememoryfullname = os.path.join(memoryfolder, bertjememoryfilename)
 # see https://huggingface.co/docs/transformers/v4.30.0/en/main_classes/pipelines#transformers.FillMaskPipeline for
 # more documentation on the FillMaskPipeline
 
-def getbertjememory(bmfilename: str) -> Dict[str, List[str]]:
+def getbertjememory(bmfilename: str) -> Dict[str, List[dict]]:
     if os.path.exists(bmfilename):
         with open(bmfilename, 'r', encoding='utf8') as bmfile:
             bmmemory = json.load(bmfile)
@@ -40,6 +40,11 @@ bertjememory = getbertjememory(bertjememoryfullname)
 
 
 def getbertjemaskwords(maskedutt: str) -> List[str]:
+    """
+    :param maskedutt: a string containing a mask
+    :return: a list of words as prediced by BERTje, sorted by score (highest to lowest).
+    This function uses *getbertjeresults*.
+    """
     results = []
     bertjeresults = getbertjeresults(maskedutt)
     for res in bertjeresults:
@@ -49,6 +54,12 @@ def getbertjemaskwords(maskedutt: str) -> List[str]:
 
 
 def getbertjemaskwordswithscores(maskedutt: str) -> List[Tuple[str, float]]:
+    """
+
+    :param maskedutt: string containing a mask
+    :return: a list of typles (predictedword: str, score: float) sorted by score highest to lowest
+    """
+    This function uses *getbertjeresults*.
     results = []
     bertjeresults = getbertjeresults(maskedutt)
     for res in bertjeresults:
@@ -67,6 +78,13 @@ def getscoresfortargetwords(maskedutt: str, targets:List[str]) -> List[Tuple[str
     return results
 
 def getbertjeresults(bertjeinput: str) -> List[dict]:
+    """
+    Note that if the bertjememory file is present it will obtain its results from this bertje memory
+    if it contains *bertjenput* as key, and compute it otherwise.
+    :param bertjeinput:  string containing the preceding context, the masked target utterance, and the context
+    that follows the target utterance
+    :return:  List of BERTje results
+    """
     if bertjeinput in bertjememory:
         results = bertjememory[bertjeinput]
     else:

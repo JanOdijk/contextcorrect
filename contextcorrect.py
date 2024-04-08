@@ -112,7 +112,15 @@ def getuttforbertje(utt:str, span: Tuple[int,int]) -> Tuple[bool, str]:
     return result
 
 
-def getfullcontext(prevcontext: List[str], cleantargetutt:str, postcontext: List[str]):
+def getfullcontext(prevcontext: List[str], cleantargetutt:str, postcontext: List[str]) -> str:
+    """
+
+    :param prevcontext:  context preceding
+    :param cleantargetutt: targetutterance with target word repplaced by mask
+    :param postcontext:  context following
+    :return: the concatenation of the utterance bodies in *prevcontext*, *cleantargetutt* and the utterance bodies
+    in *postcontext*, where utternace bodies are the utternaces with the speaker prefix removed
+    """
     resultlist: List[str] = []
     for line in prevcontext:
         body = getbody(line)
@@ -125,6 +133,12 @@ def getfullcontext(prevcontext: List[str], cleantargetutt:str, postcontext: List
     return result
 
 def getclosestmatches(wrong: str, bertjepredictions: List[str]) -> List[str]:
+    """
+    :param wrong: incorreect word
+    :param bertjepredictions: list of predictions made
+    :return: list of predictions made that have a relative distance to *wrong* less than the *redthreshold* defined
+    in the module *parameters*
+    """
     results = []
     mindiff = 1
     for bertjeprediction  in bertjepredictions:
@@ -166,6 +180,11 @@ def updateresults(predictions: List[str], wrong:str, correct:str, scores: dict, 
             wronglypredictedwords[method].update([(wrong, predictions[0], correct, thescore)])
 
 def getwords(context: List[str]) -> Set[str]:
+    """
+
+    :param context: a list of strings
+    :return: a set of words that occur in *context*
+    """
     result = set()
     for utt in context:
         tokens = tokenize(utt)
@@ -173,7 +192,14 @@ def getwords(context: List[str]) -> Set[str]:
             result.add(token)
     return result
 
-def getcontextpredictions(wrong: str, context: List[str]) -> list[str]:
+def getcontextpredictions(wrong: str, context: List[str]) -> List[str]:
+    """
+
+    :param wrong: incorrect word
+    :param context: the context ( alist of utterancesw
+    :return: a list of words that occur in the context and have a relative edit distanced with *wrong* smaller
+    than *redthreshold*
+    """
     words = getwords(context)
     rawpredictions = [ word for word in words if red(wrong, word) < redthreshold ]
     mindiff = 1.0
