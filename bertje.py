@@ -58,8 +58,8 @@ def getbertjemaskwordswithscores(maskedutt: str) -> List[Tuple[str, float]]:
 
     :param maskedutt: string containing a mask
     :return: a list of typles (predictedword: str, score: float) sorted by score highest to lowest
-    """
     This function uses *getbertjeresults*.
+    """
     results = []
     bertjeresults = getbertjeresults(maskedutt)
     for res in bertjeresults:
